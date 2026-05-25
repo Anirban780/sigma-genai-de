@@ -1,0 +1,35 @@
+{
+  "file": "queries/daily_failure_rate.sql",
+  "reviewed_at": "2026-05-25T16:00:49.066424",
+  "issues_found": 3,
+  "review": {
+    "issues": [
+      {
+        "severity": "Critical",
+        "category": "Correctness",
+        "title": "Incorrect calculation of failure rate",
+        "line": "failed_count / total_count * 100 AS failure_rate",
+        "problem": "The failure rate is being calculated incorrectly by dividing the failed_count by total_count for each row, instead of calculating it once per transaction_date.",
+        "fix": "failed_count / total_count * 100"
+      },
+      {
+        "severity": "Medium",
+        "category": "Performance",
+        "title": "Correlated subquery",
+        "line": "SELECT COUNT(*) FROM fact_transactions f2 WHERE f2.status = 'FAILED' AND f2.transaction_date = t.transaction_date",
+        "problem": "The correlated subquery can be inefficient as it runs for each row in the outer query.",
+        "fix": "Use a JOIN to avoid correlated subquery."
+      },
+      {
+        "severity": "Low",
+        "category": "Readability",
+        "title": "Lack of comments on complex logic",
+        "line": "Entire query",
+        "problem": "The query lacks comments explaining the logic, which can make it harder to understand for other developers.",
+        "fix": "Add comments explaining the logic of the query."
+      }
+    ],
+    "corrected_sql": "WITH failed_transactions AS (SELECT transaction_date, COUNT(*) AS failed_count FROM fact_transactions WHERE status = 'FAILED' GROUP BY transaction_date), total_transactions AS (SELECT transaction_date, COUNT(*) AS total_count FROM fact_transactions GROUP BY transaction_date) SELECT t.transaction_date, ft.failed_count, tt.total_count, (ft.failed_count::DECIMAL / tt.total_count) * 100 AS failure_rate FROM total_transactions tt LEFT JOIN failed_transactions ft ON tt.transaction_date = ft.transaction_date ORDER BY t.transaction_date;",
+    "summary": "The query had correctness issues with the failure rate calculation, performance issues with the correlated subquery, and readability issues due to lack of comments."
+  }
+}

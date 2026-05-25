@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: mart_merchant_performance
+    description: Merchant-level performance KPIs for completed and failed transactions.
+    columns:
+      - name: merchant_id
+        description: Unique identifier for the merchant.
+        tests:
+          - not_null
+          - unique
+      - name: merchant_name
+        description: Merchant display name.
+        tests:
+          - not_null
+      - name: total_transactions
+        description: Total transactions for the merchant.
+        tests:
+          - not_null
+      - name: failed_count
+        description: Failed transactions for the merchant.
+        tests:
+          - not_null
+      - name: total_revenue
+        description: Revenue from completed transactions only.
+        tests:
+          - not_null
+      - name: failure_rate_pct
+        description: Failed transaction percentage.
+        tests:
+          - not_null
+      - name: avg_transaction_value
+        description: Average value of completed transactions.
+      - name: unique_customers
+        description: Unique customers transacting with the merchant.
+        tests:
+          - not_null

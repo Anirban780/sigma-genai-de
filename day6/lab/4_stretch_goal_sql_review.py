@@ -38,7 +38,7 @@ WHERE THIS FITS:
   Day 10: LangGraph agent calls this as a TOOL autonomously
 
 HOW TO RUN:
-  python stretch_goal_sql_review.py queries/
+  python 4_stretch_goal_sql_review.py queries/
 """
 
 import sys
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         print("=" * 60)
         print("")
         print("STEP 1: Run the agent on existing queries")
-        print("  python stretch_goal_sql_review.py queries/")
+        print("  python 4_stretch_goal_sql_review.py queries/")
         print("")
         print("STEP 2: Read batch_report.json — what bugs did AI find?")
         print("")
@@ -150,7 +150,7 @@ if __name__ == "__main__":
         print("  - Use different categories (correctness + performance, etc.)")
         print("")
         print("STEP 4: Re-run and verify AI catches your bugs")
-        print("  python stretch_goal_sql_review.py queries/")
+        print("  python 4_stretch_goal_sql_review.py queries/")
         print("")
         sys.exit(0)
 

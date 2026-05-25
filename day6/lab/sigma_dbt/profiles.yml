@@ -1,0 +1,13 @@
+sigma_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: GEJKIOG-TKC55632
+      user: student_genai
+      private_key_path: /Users/as-mac-1375/Documents/GenAI Lab Materials/sigma-genai-de/day6/bonus/student_key.p8
+      role: STUDENT_CORTEX
+      database: SIGMA_DE
+      warehouse: COMPUTE_WH
+      schema: PUBLIC
+      threads: 1

@@ -1,0 +1,1 @@
+SELECT 1 AS deliberate_bad_data_row

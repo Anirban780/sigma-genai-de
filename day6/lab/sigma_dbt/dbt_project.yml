@@ -1,0 +1,13 @@
+name: sigma_dbt
+version: '1.0.0'
+profile: sigma_dbt
+
+model-paths: ["models"]
+test-paths: ["tests"]
+
+models:
+  sigma_dbt:
+    staging:
+      +materialized: ephemeral
+    marts:
+      +materialized: ephemeral

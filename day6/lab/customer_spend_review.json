@@ -1,0 +1,43 @@
+{
+  "file": "queries/customer_spend.sql",
+  "reviewed_at": "2026-05-25T16:00:42.394103",
+  "issues_found": 4,
+  "review": {
+    "issues": [
+      {
+        "severity": "Critical",
+        "category": "Correctness",
+        "title": "Missing filter for transaction status",
+        "line": "WHERE t.status = 'COMPLETED'",
+        "problem": "The query should only include transactions with status 'COMPLETED' for calculating lifetime value.",
+        "fix": "WHERE t.status = 'COMPLETED'"
+      },
+      {
+        "severity": "Medium",
+        "category": "Correctness",
+        "title": "Incorrect aggregation",
+        "line": "SUM(t.amount) AS lifetime_value, COUNT(t.transaction_id) AS total_orders",
+        "problem": "The query should only sum the amount for completed transactions, but it is not filtering for 'COMPLETED' status in the aggregation.",
+        "fix": "SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) AS lifetime_value"
+      },
+      {
+        "severity": "Low",
+        "category": "Readability",
+        "title": "Lack of comments",
+        "line": "Entire query",
+        "problem": "The query lacks comments explaining the purpose and logic, making it harder to understand for other developers.",
+        "fix": "Add comments explaining the purpose of each part of the query."
+      },
+      {
+        "severity": "Low",
+        "category": "Readability",
+        "title": "Inconsistent naming",
+        "line": "SUM(t.amount) AS lifetime_value, COUNT(t.transaction_id) AS total_orders",
+        "problem": "The aliases 'lifetime_value' and 'total_orders' are not consistently named. Consider using 'total_lifetime_value' and 'total_transactions'.",
+        "fix": "SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) AS total_lifetime_value, COUNT(t.transaction_id) AS total_transactions"
+      }
+    ],
+    "corrected_sql": "SELECT c.customer_name, c.email, c.tier, SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) AS total_lifetime_value, COUNT(t.transaction_id) AS total_transactions FROM dim_customer c LEFT JOIN fact_transactions t ON c.customer_id = t.customer_id WHERE t.status = 'COMPLETED' GROUP BY c.customer_name, c.email HAVING SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) > 1000 ORDER BY total_lifetime_value DESC;",
+    "summary": "The query has correctness issues with aggregation and missing status filter. Readability can be improved with comments and consistent naming."
+  }
+}

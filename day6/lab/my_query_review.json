@@ -1,0 +1,27 @@
+{
+  "file": "queries/my_query.sql",
+  "reviewed_at": "2026-05-25T16:00:54.224440",
+  "issues_found": 2,
+  "review": {
+    "issues": [
+      {
+        "severity": "Critical",
+        "category": "Correctness",
+        "title": "Incorrect revenue calculation",
+        "line": "SUM(t.amount) AS revenue_usd",
+        "problem": "Revenue should only include transactions with status 'COMPLETED'.",
+        "fix": "SUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) AS revenue_usd"
+      },
+      {
+        "severity": "Medium",
+        "category": "Readability",
+        "title": "Lack of comments",
+        "line": "Entire query",
+        "problem": "The query lacks comments explaining the purpose and logic.",
+        "fix": "Add comments explaining the purpose and logic of each part of the query."
+      }
+    ],
+    "corrected_sql": "SELECT c.customer_name,\nc.email,\nm.merchant_name,\nSUM(CASE WHEN t.status = 'COMPLETED' THEN t.amount ELSE 0 END) AS revenue_usd,\nCOUNT(*) AS transaction_count\nFROM fact_transactions t\nJOIN dim_customer c\n  ON t.customer_id = c.customer_id\nJOIN dim_merchant m\n  ON t.merchant_id = m.merchant_id\nWHERE t.transaction_date >= '2024-01-01'\nGROUP BY c.customer_name,\nc.email,\nm.merchant_name\nORDER BY revenue_usd DESC;",
+    "summary": "The query had a critical correctness issue with revenue calculation and lacked readability due to missing comments."
+  }
+}

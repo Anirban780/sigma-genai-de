@@ -681,7 +681,7 @@ Results saved to cortex_results.json
 
 ---
 
-## MILESTONE 5 — Head-to-Head Comparison
+<!-- ## MILESTONE 5 — Head-to-Head Comparison
 
 **What we're doing:** Building the comparison table that is your Team
 Challenge deliverable. Side-by-side: your Module 2 NL2SQL vs Cortex Analyst
@@ -733,7 +733,7 @@ Consider:
 - Scalability (Module 2: you maintain schema context. Cortex: semantic model scales)
 
 Your recommendation: [Module 2 NL2SQL / Cortex Analyst / Hybrid approach]
-Reason: (2-3 sentences)
+Reason: (2-3 sentences) -->
 ```
 
 ---

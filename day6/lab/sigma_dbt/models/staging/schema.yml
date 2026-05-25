@@ -1,0 +1,57 @@
+version: 2
+
+sources:
+  - name: sigma_raw
+    database: SIGMA_DE
+    schema: PUBLIC
+    tables:
+      - name: fact_transactions
+        identifier: FACT_TRANSACTIONS
+      - name: dim_merchant
+        identifier: DIM_MERCHANT
+      - name: dim_customer
+        identifier: DIM_CUSTOMER
+
+models:
+  - name: stg_transactions
+    description: Cleaned transaction facts from Snowflake.
+    columns:
+      - name: transaction_id
+        description: Unique identifier for each transaction.
+        tests:
+          - not_null
+          - unique
+      - name: amount
+        description: Transaction amount in USD.
+        tests:
+          - not_null
+      - name: status
+        description: Transaction status.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['COMPLETED', 'FAILED', 'PENDING']
+      - name: merchant_id
+        description: Foreign key to the merchant dimension.
+        tests:
+          - not_null
+      - name: customer_id
+        description: Foreign key to the customer dimension.
+        tests:
+          - not_null
+      - name: transaction_date
+        description: Transaction date.
+        tests:
+          - not_null
+      - name: payment_method
+        description: Payment method used for the transaction.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['CREDIT_CARD', 'DEBIT_CARD', 'UPI']
+      - name: loaded_at
+        description: Timestamp when the staging row was created.
+        tests:
+          - not_null
