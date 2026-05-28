@@ -72,12 +72,37 @@ Google hosts a shared sandbox loaded with rich mock data from standard enterpris
     > In the public sandbox, you can explore everything but cannot create new database service connections or run ingestion (Steps 3 & 4) because write permissions are restricted.
 
 ### Option B: Local Docker Sandbox (Full Admin Access)
-If you want to actually connect to a local database and ingest metadata yourself, run this command on your machine:
+If you want to actually connect to a local database and ingest metadata yourself, use Docker Compose.
+
+**Prerequisites:**
+- Docker `20.10.0` or newer
+- Docker Compose `v2.1.1` or newer
+- Docker Desktop resources: at least `6 GiB` memory and `4 vCPUs`
+
+From this lab folder, download the pinned OpenMetadata quickstart compose file and start it:
 ```bash
-docker compose up -d
+curl -sL -o docker-compose.yml https://github.com/open-metadata/OpenMetadata/releases/download/1.12.6-release/docker-compose.yml
+docker compose -f docker-compose.yml up -d
 ```
 *   **Default URL:** `http://localhost:8585`
-*   **Default Login:** Username: `admin` / Password: `admin`
+*   **OpenMetadata Login:** Username: `admin@open-metadata.org` / Password: `admin`
+*   **Airflow Login:** Username: `admin` / Password: `admin` at `http://localhost:8080`
+
+> [!NOTE]
+> This lab does not require any Python package installation. The verification script uses only the Python standard library.
+
+### Create the Demo Database
+This lab includes a tiny MySQL dataset so you do not need any external database.
+After the Docker containers are running, load the sample tables into the MySQL container:
+```bash
+docker exec -i openmetadata_mysql mysql -uroot -ppassword < sample_mysql.sql
+```
+
+This creates a database named `sigma_demo` with two tables:
+- `customers`
+- `orders`
+
+It also creates a demo user named `sigma_user` and grants read access to MySQL query logs so OpenMetadata's optional query/lineage step does not fail on `mysql.general_log`.
 
 ---
 
@@ -100,16 +125,21 @@ Once logged in, take a look around the home screen:
 > [!NOTE]
 > *If you are using the public sandbox, skip to Step 5 as service creation is disabled. Observe the existing services instead.*
 
-To bring metadata into OpenMetadata, you first define a **Service**.
+To bring metadata into OpenMetadata, you first define a **Service**. For this lab, use the sample MySQL database you created in Step 1.
 
 1. Go to: **Settings** (Gear icon on the left menu) → **Services** → **Databases**
 2. Click **Add New Service**.
-3. Choose your database type (e.g., `MySQL`, `PostgreSQL`, `Snowflake`, `BigQuery`).
+3. Choose `MySQL`.
 4. Enter the connection details:
-   - **Host & Port:** Database address.
-   - **Credentials:** Username and Password.
-   - **Database Name:** The target database.
+   - **Host:** `mysql`
+   - **Port:** `3306`
+   - **Username:** `sigma_user`
+   - **Password:** `sigma_password`
+   - **Database Name:** `sigma_demo`
 5. Click **Test Connection** (checks if OpenMetadata can reach your database) and then click **Save**.
+
+> [!TIP]
+> If you see `Can't connect to MySQL server on 'localhost'`, the Host field is wrong. Use `mysql`, not `localhost`, because OpenMetadata connects from another Docker container.
 
 > [!TIP]
 > **Why do we do this?** OpenMetadata doesn't read your files directly; it connects to your databases and tools via these service definitions to scan their catalogs.
@@ -122,7 +152,7 @@ After creating the service connection, you must set up an **Ingestion Pipeline**
 
 1. Click **Add Metadata Ingestion** immediately after saving your service.
 2. Configure the schedule (e.g., hourly, daily, or run manually).
-3. Click **Deploy**.
+3. Click **Deploy**, then run the ingestion pipeline manually from the UI.
 4. The pipeline connects to your database, queries the system catalog (information schema), and extracts:
    - Tables and Views
    - Schema structural details
@@ -133,9 +163,13 @@ After creating the service connection, you must set up an **Ingestion Pipeline**
 
 ---
 
+Wait until the ingestion run completes successfully before continuing.
+
 ## 📊 Step 5 — Explore Tables & Data Assets
 
-Go to the search bar or navigate to **Explore** → **Tables** and open a sample table (e.g., `raw_customer`).
+Go to the search bar or navigate to **Explore** → **Tables** and open one of the sample tables:
+- `customers`
+- `orders`
 
 Explore the tabs available for every table:
 - **Schema:** Shows column names, types, descriptions, and tags.
@@ -190,6 +224,15 @@ Go to the **Glossary** section on the left sidebar.
 
 Go to **Data Quality** in the sidebar.
 
+For the local demo database, create at least one test case so the verification script can confirm the lab is complete:
+
+1. Open the `orders` table.
+2. Go to the **Profiler & Data Quality** tab.
+3. Add a test on the `amount` column.
+4. Choose a rule like `column_values_to_be_between` or `column_values_to_be_greater_than_or_equal_to`.
+5. Set the minimum value to `0`.
+6. Save and run the test.
+
 Observe the test cases:
 *   `column_values_to_be_not_null` (e.g., checking that `customer_id` is never blank).
 *   `column_values_to_be_unique` (e.g., checking that `email` has no duplicates).
@@ -241,7 +284,16 @@ To verify your work and generate the grading file for the submission tracker, ru
    ```bash
    cd repo/day9/labs/openmetadata_sandbox
    ```
-2. Run the verification script:
+2. Generate an API token for the verifier:
+   - In OpenMetadata, click your profile icon in the top-right corner.
+   - Open **Access Tokens**.
+   - Click **Generate New Token**.
+   - Copy the token immediately.
+3. Export the token in your terminal:
+   ```bash
+   export OPENMETADATA_JWT_TOKEN="paste-your-token-here"
+   ```
+4. Run the verification script:
    ```bash
    python verify_openmetadata.py
    ```
@@ -267,7 +319,7 @@ Example output file content (`../output/openmetadatalab.json`):
 ```
 
 > [!WARNING]
-> Ensure your local OpenMetadata container is active (`docker compose up -d`) and you have fully completed the database ingestion and test creation steps before running the verification script, or the count values will register as `0` and fail the tracker check.
+> Ensure your local OpenMetadata container is active (`docker compose -f docker-compose.yml up -d`) and you have fully completed the database ingestion and test creation steps before running the verification script, or the count values will register as `0` and fail the tracker check.
 
 ---
 

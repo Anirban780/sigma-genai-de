@@ -1,5 +1,5 @@
 # These checks act as the "Data Contract" for our pipeline
-checks for day1_orders:
+checks for day2_orders:
   # 1. We must have data
   - row_count > 0
   
@@ -16,3 +16,5 @@ checks for day1_orders:
   # 5. Business logic: Status must be a known value
   - invalid_count(status) = 0:
       valid values: ['COMPLETED', 'PENDING', 'FAILED']
+
+

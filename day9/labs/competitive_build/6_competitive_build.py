@@ -58,6 +58,8 @@ SCRIPT_DIR      = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR      = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "output"))
 COMPETITIVE_DIR = OUTPUT_DIR   # all sprint outputs go to labs/output/
 CHALLENGE_PATH  = os.path.join(SCRIPT_DIR, "challenge_pipeline.py")
+REPO_ROOT       = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+DEVOPS_BRAIN_DIR = os.path.join(REPO_ROOT, "day8", "lab", "devops_brain")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

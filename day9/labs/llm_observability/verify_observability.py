@@ -1,6 +1,36 @@
 import json
 import os
 import sys
+import inspect
+
+
+PHOENIX_URL = "http://localhost:6006"
+
+
+def create_phoenix_client(Client):
+    """Create a Phoenix client across old and new Phoenix SDK versions."""
+    params = inspect.signature(Client).parameters
+    if "base_url" in params:
+        return Client(base_url=PHOENIX_URL)
+    return Client(endpoint=PHOENIX_URL)
+
+
+def list_projects(client):
+    """List projects across old and new Phoenix SDK versions."""
+    if hasattr(client, "projects") and hasattr(client.projects, "list"):
+        return client.projects.list()
+    if hasattr(client, "get_projects"):
+        return client.get_projects()
+    raise AttributeError("Phoenix client has no supported project listing API")
+
+
+def get_spans_dataframe(client):
+    """Fetch spans across old and new Phoenix SDK versions."""
+    if hasattr(client, "spans") and hasattr(client.spans, "get_spans_dataframe"):
+        return client.spans.get_spans_dataframe()
+    if hasattr(client, "get_spans_dataframe"):
+        return client.get_spans_dataframe()
+    raise AttributeError("Phoenix client has no supported spans dataframe API")
 
 def main():
     print("Checking LLM Observability Lab completion status...")
@@ -14,23 +44,20 @@ def main():
         sys.exit(1)
         
     try:
-        client = Client(endpoint="http://localhost:6006")
+        client = create_phoenix_client(Client)
         # Test connection by listing projects
-        client.get_projects()
+        list_projects(client)
     except Exception as e:
-        print("❌ Error: Could not connect to local Phoenix server on http://localhost:6006.")
+        print(f"❌ Error: Could not connect to local Phoenix server on {PHOENIX_URL}.")
         print("   Ensure your python script with px.launch_app() is running in the background.")
+        print(f"   Details: {type(e).__name__}: {e}")
         sys.exit(1)
         
     print("✓ Phoenix Server Connection: SUCCESS")
     
     # 2. Get Spans Dataframe
     try:
-        # Try spans namespace first, fallback to direct client call
-        try:
-            spans_df = client.spans.get_spans_dataframe()
-        except AttributeError:
-            spans_df = client.get_spans_dataframe()
+        spans_df = get_spans_dataframe(client)
     except Exception as e:
         print(f"❌ Error: Failed to fetch spans from Phoenix: {e}")
         sys.exit(1)

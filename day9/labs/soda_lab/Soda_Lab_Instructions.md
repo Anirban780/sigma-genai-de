@@ -7,9 +7,14 @@ You are using **Soda Core** as your automated observability tool to enforce this
 
 ### Step 1: Install Soda Core & DuckDB
 Soda Core is open-source and extremely lightweight. We will install the DuckDB extension.
-Open your terminal and run:
+Use Python 3.11 or 3.12 for this lab. Python 3.13+ can make pip compile older DuckDB releases from source, which may fail on macOS.
+
+From this folder, create a clean virtual environment and install the pinned lab dependencies:
 ```bash
-pip install soda-core-duckdb duckdb
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 ### Step 2: Setup the Database
