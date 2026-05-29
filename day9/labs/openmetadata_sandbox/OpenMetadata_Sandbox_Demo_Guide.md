@@ -64,6 +64,9 @@ In this 20-minute walk-through, you will learn how to:
 
 There are two ways to explore OpenMetadata:
 
+> [!IMPORTANT]
+> **Grading / Tracker Requirement:** You **MUST use Option B (Local Docker Sandbox)** to complete the lab and generate the success file for the grading tracker. The Public Sandbox (Option A) is read-only and does not allow you to run ingestions or create test cases, which will cause the verification script to fail.
+
 ### Option A: The Public Sandbox (Easiest & Read-Only)
 Google hosts a shared sandbox loaded with rich mock data from standard enterprises.
 *   **URL:** [sandbox.open-metadata.org](https://sandbox.open-metadata.org)
