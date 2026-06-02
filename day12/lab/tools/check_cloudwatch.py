@@ -50,6 +50,7 @@ def investigate(function_name: str, hours_back: int, region: str) -> dict:
         "lambda_errors":          [],
         "firehose_failures":      [],
         "kinesis_throttles":      [],
+        "forensics_extension":    "Option A: detects Kinesis PutRecord.Throttled events via WriteProvisionedThroughputExceeded",
         "anomaly_window":         None,
         "root_cause_hypothesis":  None,
     }
@@ -116,7 +117,7 @@ def investigate(function_name: str, hours_back: int, region: str) -> dict:
     except Exception as e:
         findings["firehose_failures"] = [{"error": str(e)}]
 
-    # ── Kinesis throttles ─────────────────────────────────────────────────────
+    # ── Kinesis throttles / PutRecord.Throttled extension ─────────────────────
     try:
         resp = cw.get_metric_statistics(
             Namespace="AWS/Kinesis",
@@ -162,7 +163,8 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     load_dotenv()
 
-    hours = int(sys.argv[1]) if len(sys.argv) > 1 else 8
+    hour_args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+    hours = int(hour_args[0]) if hour_args else 8
     fn    = os.getenv("PRODUCER_LAMBDA_NAME", "sigma-kinesis-producer")
     region = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 

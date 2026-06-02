@@ -1,6 +1,6 @@
 """
 ==============================================================================
-DAY 13 — SIGMA DATATECH DATA GENERATOR
+DAY 12 — SIGMA DATATECH DATA GENERATOR
 ==============================================================================
 Simulates Sigma DataTech's merchant transaction feed into Kinesis.
 

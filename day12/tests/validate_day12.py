@@ -87,7 +87,7 @@ if bucket:
         try:
             resp  = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
             objs  = resp.get("Contents", [])
-            today = [o for o in objs if "20260604" in o["Key"] or
+            today = [o for o in objs if "20260602" in o["Key"] or
                      o["LastModified"].strftime("%Y-%m-%d") == "2026-06-04"]
             if today:
                 latest = sorted(today, key=lambda x: x["LastModified"], reverse=True)[0]

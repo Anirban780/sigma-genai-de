@@ -1,7 +1,7 @@
 # Day 12 — The Sigma Intelligence Platform
 ## 7-Agent Self-Healing Production Pipeline on AWS Bedrock
 
-**Wednesday 4 June 2026 | 11 AM – 4 PM**
+**Thursday 4 June 2026 | 11 AM – 4 PM**
 
 > You have spent 11 days building individual AI components —
 > SQL agents, pipeline generators, quality checkers, PII detectors.
@@ -638,7 +638,7 @@ Return to your `chaos_log.md`. In the **Phase 3 Comparison** section:
 
 Open each file. For every agent, answer the judgment question.
 
-**Forensics Agent** — `lab/agents/forensics_agent_instructions.md`
+**Forensics Agent** — `lab/agents/forensics_instructions.md`
 
 The Forensics Agent correlated 4 AWS services to find a 4-minute failure window.
 
@@ -740,12 +740,12 @@ python tests/validate_day12.py
 
 Expected output:
 ```
-DAY 12 VALIDATOR — THE SIGMA INTELLIGENCE PLATFORM
+DAY 12 VALIDATOR — SIGMA INTELLIGENCE PLATFORM
 ====================================================
 chaos_log.md                  ✓  (filled in, >3KB)
-agent_outputs/incident_*.md   ✓  (report written by agent)
-agent_outputs/quarantine_*.csv ✓ (23 quarantined rows)
-cloudwatch_alarms/            ✓  (3 alarms created)
+S3 reports/                   ✓  (report written by agent)
+S3 quarantine/                ✓  (quarantined rows)
+CloudWatch alarms             ✓  (3 alarms created)
 forensics_extension           ✓  (new detection added)
 judgment_answers              ✓  (3/3 answered)
 ====================================================

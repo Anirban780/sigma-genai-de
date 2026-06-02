@@ -63,7 +63,7 @@ def load(records: list, table_name: str) -> dict:
         CREATE TEMPORARY TABLE IF NOT EXISTS temp_transactions (
             transaction_id   VARCHAR,
             merchant_name    VARCHAR,
-            category         VARCHAR,
+            -- category         VARCHAR,  # removed because target table lacks this column
             amount           FLOAT,
             currency         VARCHAR,
             transaction_date DATE,
@@ -81,7 +81,6 @@ def load(records: list, table_name: str) -> dict:
         batch_values.append((
             rec.get("transaction_id", ""),
             rec.get("merchant_name", rec.get("merchant_nm", "")),
-            rec.get("category", ""),
             float(rec.get("amount", 0) or 0),
             rec.get("currency", "INR"),
             rec.get("transaction_date", ""),
@@ -93,7 +92,7 @@ def load(records: list, table_name: str) -> dict:
         ))
 
     cur.executemany(
-        """INSERT INTO temp_transactions VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+        """INSERT INTO temp_transactions VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
         batch_values,
     )
 
@@ -103,11 +102,11 @@ def load(records: list, table_name: str) -> dict:
         USING temp_transactions AS src
         ON target.transaction_id = src.transaction_id
         WHEN NOT MATCHED THEN INSERT (
-            transaction_id, merchant_name, category, amount, currency,
+            transaction_id, merchant_name, amount, currency,
             transaction_date, status, customer_id, payment_method,
             merchant_city, _loaded_at
         ) VALUES (
-            src.transaction_id, src.merchant_name, src.category, src.amount,
+            src.transaction_id, src.merchant_name, src.amount,
             src.currency, src.transaction_date, src.status, src.customer_id,
             src.payment_method, src.merchant_city, src._loaded_at
         )

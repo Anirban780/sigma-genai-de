@@ -9,8 +9,20 @@ Recovery Agent uses this to verify row counts after replay.
 """
 
 import json, os
+from dotenv import load_dotenv
+load_dotenv()
 
-
+# Validate required Snowflake credentials
+def _validate_snowflake_env():
+    required = [
+        "SNOWFLAKE_ACCOUNT",
+        "SNOWFLAKE_USER",
+        "SNOWFLAKE_PASSWORD",
+        "SNOWFLAKE_DATABASE",
+        "SNOWFLAKE_WAREHOUSE",
+    ]
+    missing = [var for var in required if not os.getenv(var)]
+    return missing
 def lambda_handler(event, context):
     params = {p["name"]: p["value"] for p in event.get("parameters", [])}
 
@@ -18,7 +30,11 @@ def lambda_handler(event, context):
     warehouse = params.get("warehouse", os.getenv("SNOWFLAKE_WAREHOUSE", "SIGMA_WH"))
     max_rows  = int(params.get("max_rows", 500))
 
-    if not sql:
+    # Ensure Snowflake env vars are present
+    missing_vars = _validate_snowflake_env()
+    if missing_vars:
+        result = {"error": f"Missing Snowflake env vars: {', '.join(missing_vars)}"}
+    elif not sql:
         result = {"error": "No SQL provided"}
     else:
         result = run_query(sql, warehouse, max_rows)

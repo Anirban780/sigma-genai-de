@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse, boto3, json, os, sys, time
+from botocore.config import Config
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -32,6 +33,36 @@ REGION             = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 SUPERVISOR_ID      = os.getenv("SUPERVISOR_AGENT_ID", "")
 SUPERVISOR_ALIAS   = os.getenv("SUPERVISOR_ALIAS_ID", "TSTALIASID")
 DEFAULT_BUCKET     = os.getenv("SIGMA_S3_BUCKET", "")
+# Optional dry‑run mode – when set, the script will only perform checks and not invoke the supervisor.
+DRY_RUN            = os.getenv("PIPELINE_DRY_RUN", "false").lower() == "true"
+
+def validate_env():
+    missing = []
+    # Required vars for pipeline operation
+    required = [
+        ("SUPERVISOR_AGENT_ID", SUPERVISOR_ID),
+        ("SIGMA_S3_BUCKET", DEFAULT_BUCKET),
+    ]
+    required = [
+        ("SUPERVISOR_AGENT_ID", SUPERVISOR_ID),
+        ("SIGMA_S3_BUCKET", DEFAULT_BUCKET),
+        ("SNOWFLAKE_ACCOUNT", os.getenv("SNOWFLAKE_ACCOUNT")),
+        ("SNOWFLAKE_USER", os.getenv("SNOWFLAKE_USER")),
+        ("SNOWFLAKE_PASSWORD", os.getenv("SNOWFLAKE_PASSWORD")),
+        ("SNOWFLAKE_DATABASE", os.getenv("SNOWFLAKE_DATABASE", "SIGMA")),
+        ("SNOWFLAKE_WAREHOUSE", os.getenv("SNOWFLAKE_WAREHOUSE", "SIGMA_WH")),
+    ]
+    for var, val in required:
+        if not val:
+            missing.append(var)
+    if missing:
+        print("[ERROR] The following required environment variables are missing in .env:")
+        for v in missing:
+            print(f"  - {v}")
+        sys.exit(1)
+    else:
+        print("[INFO] All required environment variables are set.")
+
 
 INCIDENT_MESSAGE   = (
     "Dashboard shows 40,000 transactions today but yesterday showed 1,20,000. "
@@ -91,7 +122,13 @@ def invoke_supervisor(message: str, session_id: str):
         print("  Get this from Anil at the start of class.")
         sys.exit(1)
 
-    bedrock = boto3.client("bedrock-agent-runtime", region_name=REGION)
+    bedrock_config = Config(
+        read_timeout=300,
+        connect_timeout=60,
+        retries={"max_attempts": 2}
+    )
+
+    bedrock = boto3.client("bedrock-agent-runtime", region_name=REGION, config=bedrock_config)
 
     print("\n" + "=" * 60)
     print("SIGMA INTELLIGENCE PLATFORM — SUPERVISOR AGENT")
@@ -215,6 +252,14 @@ def main():
                         default="incident")
     parser.add_argument("--health-check", action="store_true")
     args = parser.parse_args()
+
+    # Validate required environment variables before proceeding
+    validate_env()
+
+    # Optional dry‑run: perform checks but do not invoke the Supervisor Agent
+    if DRY_RUN:
+        print("[INFO] PIPELINE_DRY_RUN is enabled – skipping Supervisor invocation.")
+        sys.exit(0)
 
     if args.health_check:
         health_check()

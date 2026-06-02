@@ -25,7 +25,7 @@ else
     exit 1
 fi
 
-REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+REGION="${SIGMA_AWS_REGION:-us-east-1}"
 ROLE="${LAMBDA_ROLE_ARN}"
 
 if [ -z "$ROLE" ]; then
@@ -63,6 +63,13 @@ needs_snowflake() {
         [[ "$t" == "$name" ]] && return 0
     done
     return 1
+}
+
+wait_lambda_updated() {
+    local name="$1"
+    aws lambda wait function-updated \
+        --function-name "$name" \
+        --region "$REGION"
 }
 
 TOTAL=${#TOOLS[@]}
@@ -108,17 +115,20 @@ for ENTRY in "${TOOLS[@]}"; do
     if aws lambda get-function --function-name "$FUNC_NAME" \
        --region "$REGION" > /dev/null 2>&1; then
         # Update existing function
+        wait_lambda_updated "$FUNC_NAME"
+
         aws lambda update-function-code \
             --function-name "$FUNC_NAME" \
             --zip-file "fileb://$ZIP_FILE" \
             --region "$REGION" \
             --output text --query 'FunctionName' > /dev/null
 
+        wait_lambda_updated "$FUNC_NAME"
+
         # Update environment variables
         aws lambda update-function-configuration \
             --function-name "$FUNC_NAME" \
             --environment "Variables={
-                AWS_DEFAULT_REGION=$REGION,
                 SIGMA_S3_BUCKET=${SIGMA_S3_BUCKET:-},
                 SIGMA_STREAM=${SIGMA_STREAM:-sigma-transactions},
                 PRODUCER_LAMBDA_NAME=${PRODUCER_LAMBDA_NAME:-sigma-kinesis-producer},
@@ -135,6 +145,8 @@ for ENTRY in "${TOOLS[@]}"; do
             --region "$REGION" \
             --output text --query 'FunctionName' > /dev/null
 
+        wait_lambda_updated "$FUNC_NAME"
+
         echo "  Updated."
     else
         # Create new function
@@ -147,7 +159,6 @@ for ENTRY in "${TOOLS[@]}"; do
             --timeout 120 \
             --memory-size 256 \
             --environment "Variables={
-                AWS_DEFAULT_REGION=$REGION,
                 SIGMA_S3_BUCKET=${SIGMA_S3_BUCKET:-},
                 SIGMA_STREAM=${SIGMA_STREAM:-sigma-transactions},
                 PRODUCER_LAMBDA_NAME=${PRODUCER_LAMBDA_NAME:-sigma-kinesis-producer},
